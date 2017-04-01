@@ -16,7 +16,7 @@ cimport cython
 
 #define common literal constants
 DEF TRUE      = 1
-DEF FALSE     = 0    
+DEF FALSE     = 0
 DEF ROOT_CHAR = c'#'
 DEF ROOT_STR  = '#'
 DEF WT_CHAR   = c'^'
@@ -75,7 +75,7 @@ cdef class DictTree:
     def __init__(self, words = None):
         #initialize the tree  
         self.root        = create_node(0)
-        self.numNodes    = 1 #one for the root  
+        self.numNodes    = 1 #one for the root
         self.numWords    = 0
         if not words is None:
             self.add_words(words)
@@ -91,8 +91,11 @@ cdef class DictTree:
         word += WT_STR
         self._add_word(<char *> word)
 
-    def has_word(self, object word):
+    def has_word(self, object word, allow_partial = False):
         "check if word is in tree"
+        if not allow_partial:
+            #add the final termination character to the search
+            word += WT_STR
         if self._has_word(<char *> word):
             return True
         else:
@@ -156,7 +159,7 @@ cdef class DictTree:
         #check if word is in tree
         cdef TreeNode *node = self.root    #start at the root
         cdef TreeEdge *edge = NULL
-        cdef unsigned int n = strlen(word)         
+        cdef unsigned int n = strlen(word)
         cdef unsigned int i = 0
         cdef char *buff = <char *> malloc((n + 2)*sizeof(char))
         strcpy(buff,word)         #place word
@@ -168,7 +171,7 @@ cdef class DictTree:
                 #check the edge list of this node
                 if not node.first_edge:  #edge list does not exist
                     return FALSE
-                edge = node.first_edge  
+                edge = node.first_edge
                 #search linked list of siblings
                 while TRUE:
                     if edge.letter == buff[i]:
@@ -176,14 +179,14 @@ cdef class DictTree:
                         break
                     if not edge.next_edge:
                         return FALSE
-                    #move to next_edge sibling                    
+                    #move to next_edge sibling
                     edge = edge.next_edge
                 #check if word is finished
                 if i >= n:
                     break
                 if not edge.down_node:
                     return FALSE
-                node = edge.down_node    
+                node = edge.down_node
         finally:
             free(buff)
         return TRUE

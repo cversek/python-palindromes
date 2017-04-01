@@ -5,7 +5,7 @@ cursor.pyx
 desc: A data structure for storing a dictionary of words such that it can be quickly searched
       based on its alphabetical descendence
 
-auth: Craig Wm. Versek (cversek@physics.umass.edu)
+auth: Craig Wm. Versek (cversek@gmail.com)
 
 date: 3/27/2011
 """
@@ -58,14 +58,14 @@ cdef class Cursor:
                   list of succesful moves
         """
         cdef char  *letters = path
-        cdef unsigned int n = strlen(letters) 
+        cdef unsigned int n = strlen(letters)
         cdef char letter       
         cdef unsigned int i = 0
 
         for i from 0 <= i < n:
             letter = letters[i]
             if not self._move_down(letter):
-                return path[:i] 
+                return path[:i]
     
         return path
                    
@@ -75,7 +75,7 @@ cdef class Cursor:
         while TRUE:
             if not edge:
                 return edge_set
-            edge_set.add(chr(edge.letter))                
+            edge_set.add(chr(edge.letter))
             edge = edge.next_edge
         #never should arrive here, with proper link-list structure
         return edge_set
@@ -92,7 +92,8 @@ cdef class Cursor:
 
 
     cdef int _move_down(self, char letter) nogil:
-        cdef TreeEdge *edge = self.cursor.first_edge   #start at the cursor's first edge
+        #start at the cursor's first edge
+        cdef TreeEdge *edge = self.cursor.first_edge
         while TRUE:
             if not edge:       #no further edges left to check
                 return FALSE
