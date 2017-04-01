@@ -41,9 +41,9 @@ class testDictTree(unittest.TestCase):
     def testChildrenAtCursor(self):
         c = Cursor(self.d)
         self.assertTrue(c.move_down("bea"))
-        self.assertEqual(c.get_children(),['v','n','c'])
+        self.assertEqual(c.get_edge_set(),set(['v','n','c']))
         self.assertTrue(c.move_down("beach"))
-        self.assertEqual(c.get_children(),[''])
+        self.assertEqual(c.get_edge_set(),set(['']))
 
 if __name__ == '__main__':
     unittest.main()
