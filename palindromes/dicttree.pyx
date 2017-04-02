@@ -20,7 +20,7 @@ DEF FALSE     = 0
 DEF ROOT_CHAR = c'#'
 DEF ROOT_STR  = '#'
 DEF WT_CHAR   = c'^'
-DEF WT_STR    = '^'
+DEF WT_STR    = b'^'
 
 #define some utility functions on TreeNodes and TreeEdges
 cdef TreeNode* create_node(int index) nogil:
