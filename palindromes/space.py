@@ -62,7 +62,7 @@ class PalindromeSpace(object):
             walk = walk_queue.pop()
             curr_state = walk.get_state()
             #check for cyclic paths, these are the elements of palindromes!
-            if curr_state in walk.steps:  
+            if curr_state in walk.steps:
                 walk.mark_state()
                 steps = walk.steps
                 for i in range(0,len(steps),2):
@@ -71,7 +71,7 @@ class PalindromeSpace(object):
                 yield "self-cyclic", walk
                 continue
 
-            if curr_state in visited_states_set:  
+            if curr_state in visited_states_set:
                 walk.mark_state()
                 steps = walk.steps
                 for i in range(0,len(steps),2):
@@ -83,13 +83,12 @@ class PalindromeSpace(object):
             #check the accesible edges
             e1, e2, overlap = walk.get_edge_overlap()
             #check for dead-ends
-            if not (overlap or WT_MARKER in e1 or WT_MARKER in e2):  #dead-end path            
+            if not (overlap or WT_MARKER in e1 or WT_MARKER in e2):  #dead-end path
                 yield "dead", walk
                 continue
       
             #keep track of states walked
             walk.mark_state()
-            #self.mark_state(curr_state)
             #follow down all common children except word endings
             for edge_letter in overlap - WT_MARKER_SET:
                 new_walk = walk.clone()
@@ -102,13 +101,16 @@ class PalindromeSpace(object):
                 new_walk.move_down_fcur(WT_MARKER)
                 #put this new walk on the queue, depth-first
                 walk_queue.append(new_walk)
-            if WT_MARKER in e2: #reverse tree ends word here, follow back to root  #FIXME if -> elif
+            if WT_MARKER in e2: #reverse tree ends word here, follow back to root  #FIXME if -> elif?
                 new_walk = walk.clone()
                 new_walk.move_down_rcur(WT_MARKER)
                 #put this new walk on the queue, depth-first
                 walk_queue.append(new_walk)
             #finished checking, now die quitely
         return
+        
+    def export(self, filename):
+        pass
 
 ###############################################################################
 #  TEST CODE
@@ -126,7 +128,7 @@ if __name__ == "__main__":
     
     PLOT_FUNC = loglog
 
-    N = 10000
+    N = 1000
     word_file = open('../palindromes/dicts/most_frequent.dict')
     WORDS = (w.strip().lower() for w in word_file)
     WORDS = list(WORDS)[:N]
@@ -144,31 +146,31 @@ if __name__ == "__main__":
 
     PS.build()
 
-    import networkx as nx
-    G = PS.cyclic_digraph
-    pos = nx.graphviz_layout(G)
+#    import networkx as nx
+#    G = PS.cyclic_digraph
+#    pos = nx.graphviz_layout(G)
 
-    edge_dict = G.edge
-    edge_labels_items = []
-    for edge in G.edges():
-        edge_data = G.get_edge_data(*edge)
-        label = edge_data['f_letter'] or ''
-        if label == WT_MARKER:
-            label = ' '
-        edge_labels_items.append((edge,label))
-    edge_labels = dict(edge_labels_items)
-   
-    f = figure(figsize=(10,10))
-    ax = f.add_subplot(111)
-    ax.set_xticks(())
-    ax.set_yticks(())
-    nx.draw_networkx_edges(G, pos=pos, ax = ax)
-    nx.draw_networkx_nodes(G, pos=pos, ax = ax, node_size = 400)
-    nx.draw_networkx_labels(G, pos=pos, ax = ax, font_size = 6)
-    nx.draw_networkx_edge_labels(G, pos=pos, edge_labels = edge_labels, ax = ax)
-#    #networkx.draw(PG.cyclic_digraph)
-    f.savefig("palindrome_graph.svg")
-    show()
+#    edge_dict = G.edge
+#    edge_labels_items = []
+#    for edge in G.edges():
+#        edge_data = G.get_edge_data(*edge)
+#        label = edge_data['f_letter'] or ''
+#        if label == WT_MARKER:
+#            label = ' '
+#        edge_labels_items.append((edge,label))
+#    edge_labels = dict(edge_labels_items)
+#   
+#    f = figure(figsize=(10,10))
+#    ax = f.add_subplot(111)
+#    ax.set_xticks(())
+#    ax.set_yticks(())
+#    nx.draw_networkx_edges(G, pos=pos, ax = ax)
+#    nx.draw_networkx_nodes(G, pos=pos, ax = ax, node_size = 400)
+#    nx.draw_networkx_labels(G, pos=pos, ax = ax, font_size = 6)
+#    nx.draw_networkx_edge_labels(G, pos=pos, edge_labels = edge_labels, ax = ax)
+##    #networkx.draw(PG.cyclic_digraph)
+#    f.savefig("palindrome_graph.svg")
+#    show()
 
 #    print '-'*80
 #    items = PalindromeWalk._report_log.items()

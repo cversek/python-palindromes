@@ -4,7 +4,7 @@ auth:  Craig Wm. Versek (cversek@physics.umass.edu)
 date:  3/27/2011
 notes: -build with "python setup.py build_ext --inplace"
 """
-import sys, os, stat, commands
+import sys, os
 from setuptools import setup, Extension
 #from distutils.core import setup
 #from distutils.extension import Extension
@@ -13,8 +13,8 @@ from setuptools import setup, Extension
 try:
     from Cython.Distutils import build_ext
 except ImportError:
-    print "You don't seem to have Cython installed. Please get a"
-    print "copy from www.cython.org and install it"
+    print("You don't seem to have Cython installed. Please get a")
+    print("copy from www.cython.org and install it")
     sys.exit(1)
 
 # scan the 'dvedit' directory for extension files, converting
@@ -38,7 +38,7 @@ def makeExtension(ext_name):
     if not os.path.exists(ext_c_filepath) or (os.path.getmtime(ext_pyx_filepath) > os.path.getmtime(ext_c_filepath)):
         # For some reason, setup in setuptools does not compile
         # Cython files (!)  Do that manually...
-        print "cythoning %s to %s" % (ext_pyx_filepath, ext_c_filepath)
+        print("cythoning %s to %s" % (ext_pyx_filepath, ext_c_filepath))
         os.system("cython %s" % ext_pyx_filepath)
     return Extension(
         ext_name,
@@ -52,7 +52,7 @@ def makeExtension(ext_name):
 # get the list of extensions
 EXT_NAMES = scandir("palindromes")
 
-print "found Cython extensions:", EXT_NAMES
+print("found Cython extensions:", EXT_NAMES)
 
 # and build up the set of Extension objects
 EXTENSIONS = [makeExtension(name) for name in EXT_NAMES]
