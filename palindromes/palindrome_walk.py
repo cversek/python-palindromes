@@ -27,7 +27,7 @@ class PalindromeWalk(object):
         self.fcur = fcur
         self.rcur = rcur
         self.steps = steps or []
-        self._id = PalindromeWalk._gen_id.next()
+        self._id = next(PalindromeWalk._gen_id)
 
     def get_state(self):
         f_index = self.fcur.at_index()

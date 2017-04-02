@@ -83,16 +83,18 @@ cdef class DictTree:
     def add_words(self, words):
         "add a list of words to the tree"
         for word in words:
-            self.add_word(word) 
+            self.add_word(word)
 
     def add_word(self, object word):
         "add a word to the tree"
         #run the low-level add mechanism
+        word = word.encode('utf-8')
         word += WT_STR
         self._add_word(<char *> word)
 
     def has_word(self, object word, allow_partial = False):
         "check if word is in tree"
+        word = word.encode('utf-8')
         if not allow_partial:
             #add the final termination character to the search
             word += WT_STR
@@ -105,7 +107,7 @@ cdef class DictTree:
         "recursively destroy the whole tree"
         destroy(self.root) 
 
-    #C implementation   
+    #C implementation
     cdef void _add_word(self,char* word):
         "add a word to the tree"
         cdef TreeNode *node = self.root         #start at the root

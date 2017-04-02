@@ -57,6 +57,7 @@ cdef class Cursor:
            returns: 
                   list of succesful moves
         """
+        path = path.encode('utf-8')
         cdef char  *letters = path
         cdef unsigned int n = strlen(letters)
         cdef char letter       
