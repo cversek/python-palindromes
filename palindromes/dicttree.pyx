@@ -69,8 +69,9 @@ cdef void _recur_destroy_edges(TreeEdge* edge) nogil:
 
 ####################################################################################################################    
 cdef class DictTree:
-    ''' A tree based dictionary with each node representing a letter,
-        and each path ending on the WORD_END node spells a valid word'''
+    ''' A tree based dictionary with each node representing an inter-word state,
+        each edge representing a letter, and each path ending on the 
+        WT_CHAR ("word terimination") edge spells a valid word'''
     def __init__(self, words = None):
         #initialize the tree  
         self.root        = create_node(0)
