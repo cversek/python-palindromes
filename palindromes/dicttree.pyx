@@ -13,7 +13,6 @@ date: 3/27/2011
 #configure cython
 cimport cython
 
-
 #define common literal constants
 DEF TRUE      = 1
 DEF FALSE     = 0
