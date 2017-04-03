@@ -16,25 +16,24 @@ ALPHA_SET = set("abcdefghijklmnopqrstuvwxyz")
 
 from itertools import tee
 
-def isorted(iterable):
-    iterable = iter(iterable)
-    try:
-        pivot = iterable.next()
-    except:
-        return
+#def isorted(iterable):
+#    iterable = iter(iterable)
+#    pivot = next(iterable)
 
-    a, b = tee(iterable)
-    for x in isorted(filter(lambda item:item < pivot, a)):
-        yield x
-    yield pivot
-    for x in isorted(filter(lambda item:item >= pivot, b)):
-        yield x
+#    a, b = tee(iterable)
+#    for x in isorted(filter(lambda item:item < pivot, a)):
+#        yield x
+#    yield pivot
+#    for x in isorted(filter(lambda item:item >= pivot, b)):
+#        yield x
 
 
 class PalindromeSpace(object):
-    def __init__(self, words, do_sort = False):
-        if do_sort:
-            words = isorted(words)  #lazy quick sort
+    def __init__(self, words,
+                 do_sort = False
+                ):
+#        if do_sort:
+#            words = isorted(words)  #lazy quick sort
         #create two independent iterables
         fwords, rwords = tee(words,2)
         #feed forward words, lazily
@@ -63,6 +62,15 @@ class PalindromeSpace(object):
                 for i in range(1,len(steps)-1,2):
                     node1 = steps[i-1]
                     f_letter, r_letter = steps[i]
+                    marker = None
+                    if f_letter == r_letter:
+                        marker = f_letter
+                    elif f_letter == WT_MARKER:
+                        marker = '>'
+                    elif r_letter == WT_MARKER:
+                        marker = '<'
+                    else:
+                        raise ValueError("bad match, f_letter '%s' != r_letter '%s' and neither is word termination" % (f_letter,r_letter))
                     node2 = steps[i+1]
                     if not self.cyclic_digraph.has_node(node1):
                         self.cyclic_digraph.add_node(node1)
@@ -71,7 +79,7 @@ class PalindromeSpace(object):
                         self.cyclic_digraph.add_node(node2)
                         added_nodes += 1
                     if not self.cyclic_digraph.has_edge(node1,node2):
-                        self.cyclic_digraph.add_edge(node1, node2, attr_dict = {'f_letter': f_letter,'r_letter': r_letter} )
+                        self.cyclic_digraph.add_edge(node1, node2, marker=marker)
                         added_edges += 1
         self._isbuilt = True
 
@@ -131,9 +139,44 @@ class PalindromeSpace(object):
             #finished checking, now die quitely
         return
         
-    def export(self, filename):
-        pass
-
+    def export_csv(self, filename, attr_keys = ['marker']):
+        G = self.cyclic_digraph
+        #remap nodes to simple integers in order
+        nodes = G.nodes()
+        nodes.sort()
+        node_map = dict((n,i) for i,n in enumerate(nodes))
+        #iterate through nodes, writing out the edge list
+        with open(filename,'w') as out_file:
+            for source in nodes:
+                #build the new graph from simplified nodes
+                items = sorted(G.edge[source].items())
+                for target, attrs in items:
+                    vals = ",".join([attrs[key] for key in attr_keys])
+                    out_file.write("%d,%d,%s\n" % (node_map[source],node_map[target], vals))
+    def export_json(self, filename):
+        G = self.cyclic_digraph
+        #remap nodes to simple integers in order
+        nodes = G.nodes()
+        nodes.sort()
+        node_map = dict((n,i) for i,n in enumerate(nodes))
+        #iterate through nodes, writing out the edge list
+        with open(filename,'w') as out_file:
+            out_file.write("[\n")
+            for i, source in enumerate(nodes):
+                #build the new graph from simplified nodes
+                buff = []
+                for target, attrs in G.edge[source].items():
+                    key = attrs['marker']
+                    buff.append("\"%s\":%d," % (key,node_map[target]))
+                buff.sort() #arrange in alphabetical order
+                buff[-1] = buff[-1].rstrip(',') #remove last comma
+                buff = "".join(buff)
+                out_file.write("{")
+                out_file.write(buff)
+                if i < len(nodes) - 1:
+                    out_file.write("},\n")
+                else:
+                    out_file.write("}\n]")
 ###############################################################################
 #  TEST CODE
 ###############################################################################
@@ -147,6 +190,9 @@ if __name__ == "__main__":
     words = palindromes.resources.fetch_words("most_frequent.dict")
     #limit to first N words
     words = islice(words, N)
-    PS = PalindromeSpace(words, do_sort = True)
-    #PS.build()
+    PS = PalindromeSpace(words)
+    PS.build()
+    G = PS.cyclic_digraph
+    from networkx.readwrite import *
+
 
