@@ -45,7 +45,7 @@ cdef TreeEdge* create_edge(char letter) nogil
 
 #cdef recur_list_paths(TreeNode *node, object paths, object path_accum)
 
-cdef void destroy(TreeNode* node) nogil
+cdef void destroy(TreeNode* node) noexcept nogil
 
 #declare the interface for DictTree extension type
 cdef class DictTree:
@@ -64,4 +64,5 @@ cdef class DictTree:
     cdef void _add_word(self,char *word)
     cdef int  _has_word(self,char *word)
 
+    cdef void _invoke_destroy_on_root(self)
 ###############################################################################    
