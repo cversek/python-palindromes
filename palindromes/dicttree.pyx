@@ -1,15 +1,15 @@
-####################################################################################################################
+###############################################################################
 """ 
 dicttree.pyx
 
-desc: A data structure for storing a dictionary of words such that it can be quickly searched
-      based on its alphabetical descendence
+desc: A Trie data structure for storing a dictionary of words such that it can 
+    be quickly searched based on its alphabetical descendence
 
 auth: Craig Wm. Versek (cversek@physics.umass.edu)
 
 date: 3/27/2011
 """
-####################################################################################################################
+###############################################################################
 #configure cython
 cimport cython
 
@@ -47,23 +47,25 @@ cdef TreeEdge* create_edge(char letter) nogil:
 #    if node.next_edge:
 #        recur_list_paths(node.next_edge,path_accum,paths)
 
-cdef void destroy(TreeNode* node) nogil:
-    _recur_destroy_nodes(node)
+cdef void destroy(TreeNode* node) noexcept nogil:
+    # pass the original root pointer along so we never loop back
+    _recur_destroy_nodes(node, node)
     
 
-cdef void _recur_destroy_nodes(TreeNode* node) nogil:
+cdef void _recur_destroy_nodes(TreeNode* node, TreeNode* root) noexcept nogil:
     "recursively destroy the tree descending from this node"
     if node:
         if node.first_edge:   #follow along any edges first
-            _recur_destroy_edges(node.first_edge)  
+            _recur_destroy_edges(node.first_edge, root)
         free(node)
 
-cdef void _recur_destroy_edges(TreeEdge* edge) nogil:
+cdef void _recur_destroy_edges(TreeEdge* edge, TreeNode* root) noexcept nogil:
     if edge:
         if edge.next_edge: #go to next edge first
-            _recur_destroy_edges(edge.next_edge)
-        if edge.down_node: #go to descendant nodes
-            _recur_destroy_nodes(edge.down_node)
+            _recur_destroy_edges(edge.next_edge, root)
+        # Only recurse to decendents if it isn’t the special root‐cycle edge
+        if edge.down_node != root:
+            _recur_destroy_nodes(edge.down_node, root)
         free(edge)
             
 
@@ -103,9 +105,9 @@ cdef class DictTree:
         else:
             return False
 
-    def __del__(self):
-        "recursively destroy the whole tree"
-        destroy(self.root) 
+    def __dealloc__(self):
+        # call the C‑level cleanup helper
+        self._invoke_destroy_on_root()
 
     #C implementation
     cdef void _add_word(self,char* word):
@@ -192,5 +194,13 @@ cdef class DictTree:
         finally:
             free(buff)
         return TRUE
+
+    cdef void _invoke_destroy_on_root(self):
+        cdef TreeNode* temp_root
+        if self.root != NULL:
+            temp_root = self.root
+            self.root = NULL
+            with nogil:
+                destroy(temp_root)
 
 ####################################################################################################################
