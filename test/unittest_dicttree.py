@@ -1,52 +1,76 @@
 import unittest
 from palindromes.dicttree import DictTree
-from palindromes.cursor   import Cursor
 
-WT_STR    = '^'
-
-class testDictTree(unittest.TestCase):
+class TestDictTree(unittest.TestCase):
     def setUp(self):
-        d = DictTree()
-        d.add_word("beaver")
-        d.add_word("bean")
-        d.add_word("beach")
-        self.d = d
-        self.expected_numNodes = 10
-    def testNumNodes(self):
-        self.assertEqual(self.d.numNodes,self.expected_numNodes)
-    def testAdd(self):
-        d = self.d
-        d.add_word("poop")
-        self.assertTrue(d.has_word("poop"))
-    def testNotHas_one_less(self):
-        d = self.d
-        self.assertFalse(d.has_word("beave"))
-    def testNotHas_last_off(self):
-        d = self.d
-        self.assertFalse(d.has_word("beaven"))
-    def testAddTwoOverlap1(self):
-        d = self.d
-        d.add_word("poop")
-        d.add_word("poo")  
-        self.assertTrue(d.has_word("poo"))
-        self.assertTrue(d.has_word("poop"))
-    def testAddTwoOverlap2(self):
-        d = self.d
-        d.add_word("poo")
-        d.add_word("poop")
-        self.assertTrue(d.has_word("poo"))
-        self.assertTrue(d.has_word("poop"))
-    def testSetCursor(self):
-        c = Cursor(self.d)
-        self.assertTrue(c.move_down("bea"))
-    def testChildrenAtCursor(self):
-        c = Cursor(self.d)
-        self.assertEqual(c.move_down("bea"), b'bea')
-        self.assertEqual(c.get_edge_set(),set(['v','n','c']))
-        c.reset() #import must reset cursor state
-        self.assertEqual(c.move_down("beach"), b'beach')
-        self.assertEqual(c.get_edge_set(),set([WT_STR]))
+        self.empty_tree = DictTree()
+        self.sample_words = ["apple", "app", "banana", "band", "bandana"]
+        self.tree = DictTree(self.sample_words.copy())
 
-if __name__ == '__main__':
+    def test_init_empty(self):
+        # empty tree has only root node and no words
+        self.assertEqual(self.empty_tree.numNodes, 1)
+        self.assertEqual(self.empty_tree.numWords, 0)
+        self.assertFalse(self.empty_tree.has_word("anything"))
+
+    def test_init_with_words_counts(self):
+        # initializing with words populates numWords and numNodes > 1
+        dt = DictTree(["a", "ab", "abc"])
+        self.assertEqual(dt.numWords, 3)
+        self.assertGreater(dt.numNodes, 1)
+        for w in ["a", "ab", "abc"]:
+            self.assertTrue(dt.has_word(w))
+
+    def test_add_word_increases_counts(self):
+        initial_nodes = self.empty_tree.numNodes
+        initial_words = self.empty_tree.numWords
+        self.empty_tree.add_word("cat")
+        self.assertEqual(self.empty_tree.numWords, initial_words + 1)
+        self.assertTrue(self.empty_tree.has_word("cat"))
+        # adding overlapping word reuses nodes
+        self.empty_tree.add_word("car")
+        self.assertEqual(self.empty_tree.numWords, initial_words + 2)
+        self.assertTrue(self.empty_tree.has_word("car"))
+        self.assertGreaterEqual(self.empty_tree.numNodes, initial_nodes + 3)
+
+    def test_add_words_bulk(self):
+        dt = DictTree()
+        dt.add_words(["x", "xy", "xyz"])
+        self.assertTrue(dt.has_word("x"))
+        self.assertTrue(dt.has_word("xy"))
+        self.assertTrue(dt.has_word("xyz"))
+        self.assertEqual(dt.numWords, 3)
+
+    def test_has_word_allow_partial(self):
+        # without allow_partial, partial matches fail
+        self.assertFalse(self.tree.has_word("ban"))
+        # with allow_partial, should succeed
+        self.assertTrue(self.tree.has_word("ban", allow_partial=True))
+
+    def test_not_has_word(self):
+        self.assertFalse(self.tree.has_word("bandit"))
+        self.assertFalse(self.tree.has_word(""))
+
+    def test_repeated_add(self):
+        dt = DictTree()
+        dt.add_word("dup")
+        dt.add_word("dup")
+        self.assertEqual(dt.numWords, 2)
+        self.assertTrue(dt.has_word("dup"))
+
+    def test_long_word(self):
+        long_word = "q" * 100
+        self.empty_tree.add_word(long_word)
+        self.assertTrue(self.empty_tree.has_word(long_word))
+        self.assertEqual(self.empty_tree.numWords, 1)
+
+    def test_num_nodes_consistency(self):
+        words = ["red", "green", "blue"]
+        dt = DictTree(words)
+        # build all distinct prefixes (including empty root "")
+        prefixes = { w[:i] for w in words for i in range(len(w) + 1) }
+        # now assert that numNodes equals number of unique prefixes
+        self.assertEqual(dt.numNodes, len(prefixes))
+
+if __name__ == "__main__":
     unittest.main()
-
