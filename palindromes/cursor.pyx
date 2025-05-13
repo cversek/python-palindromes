@@ -11,7 +11,7 @@ date: 3/27/2011
 """
 ####################################################################################################################
 ##get common C definition
-from dicttree cimport TreeNode, DictTree
+from palindromes.dicttree cimport TreeNode, TreeEdge, DictTree
 
 #get C string handling functions
 cdef extern from "string.h":
