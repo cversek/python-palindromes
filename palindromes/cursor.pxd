@@ -9,7 +9,7 @@ auth: Craig Wm. Versek (cversek@gmail.com)
 date: 3/27/2011
 """
 ####################################################################################################################
-from dicttree cimport DictTree, TreeNode, TreeEdge
+from palindromes.dicttree cimport DictTree, TreeNode, TreeEdge
 
 #declare the interface for Cursor extension type
 cdef class Cursor:
