@@ -1,0 +1,25 @@
+# pyproject.toml
+
+# Project metadata
+# ----------------------------------------
+[project]
+name        = "palindromes"
+version     = "0.0.2a0"
+authors     = [ { name = "Craig Versek", email = "cversek@gmail.com" } ]
+
+# Optional dependencies
+# ----------------------------------------
+[project.optional-dependencies]
+test = [
+    "pytest>=7.4.0",
+]
+
+# Add this file to the project root to declare build dependencies for PEP 517
+# ----------------------------------------
+[build-system]
+requires = [
+    "setuptools>=65.0.0",
+    "wheel",
+    "Cython>=3.1.0"
+]
+build-backend = "setuptools.build_meta"
