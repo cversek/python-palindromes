@@ -1,70 +1,123 @@
 """   
 desc:  Build script for palindromes package.
-auth:  Craig Wm. Versek (cversek@physics.umass.edu)
-date:  3/27/2011
+auth:  Craig Wm. Versek (cversek@gmail.com)
+date:  2025-05-13
 notes: -build with "python setup.py build_ext --inplace"
+
+logs:
+- 2025-05-13: updated to use Cython >= 3.1.0
+- 2011-03-27: initial version
 """
-import sys, os
+# import os
+# import tomllib  # Python 3.11+
+# from setuptools import setup, Extension
+# from Cython.Build import cythonize
+
+# # Project root
+# here = os.path.abspath(os.path.dirname(__file__))
+
+# ## Package include dir for Cython .pxd files
+# #include_dir = os.path.join(here, "palindromes")
+
+# # parse project metadata from pyproject.toml
+# with open(os.path.join(here, "pyproject.toml"), "rb") as f:
+#     config = tomllib.load(f)
+# project_meta = config.get("project", {})
+
+# pkg_name = project_meta.get("name")
+# authors = project_meta.get("authors", [])
+# if authors:
+#     author_info = authors[0]
+#     pkg_author = author_info.get("name", "")
+#     pkg_author_email = author_info.get("email", "")
+# else:
+#     pkg_author = pkg_author_email = ""
+
+# # # discover all .pyx modules under palindromes
+# # glob_list = []
+# # for dirpath, _, filenames in os.walk(include_dir):
+# #     for fname in filenames:
+# #         if fname.endswith(".pyx"):
+# #             rel = os.path.relpath(os.path.join(dirpath, fname), here)
+# #             glob_list.append(os.path.splitext(rel)[0].replace(os.path.sep, "."))
+
+# # # build Extension objects with proper include_dirs
+# # extensions = []
+# # for module in glob_list:
+# #     src = module.replace('.', os.path.sep) + ".pyx"
+# #     extensions.append(
+# #         Extension(
+# #             name=module,
+# #             sources=[src],
+# #             include_dirs=[include_dir],       # only package dir
+# #             extra_compile_args=["-O0", "-g", "-Wall"],
+# #             extra_link_args=["-g"],
+# #         )
+# #     )
+
+# # Hard‑coded list of your Cython modules
+# extensions = [
+#     Extension(
+#         name="palindromes.dicttree",
+#         sources=["palindromes/dicttree.pyx"],
+#         include_dirs=["palindromes"],
+#     ),
+#     Extension(
+#         name="palindromes.cursor",
+#         sources=["palindromes/cursor.pyx"],
+#         include_dirs=["palindromes"],
+#     ),
+# ]
+
+# # Single setup() invocation with cythonize
+# setup(
+#     name         = pkg_name,
+#     author       = pkg_author,
+#     author_email = pkg_author_email,
+#     packages     = [pkg_name],
+#     ext_modules  = cythonize(
+#         extensions,
+#         compiler_directives={"language_level": "3"},
+#         build_dir="build",
+#     ),
+# )
+
+# Debug commands:
+#   rm -rf build/ palindromes/*.c palindromes/*.so
+#   pip install --use-pep517 -e .
+#   pip install .[test]
+#   pytest test/unittest_dicttree.py\
+
+import os
 from setuptools import setup, Extension
-#from distutils.core import setup
-#from distutils.extension import Extension
+from Cython.Build import cythonize
 
-# we'd better have Cython installed, or it's a no-go
-try:
-    from Cython.Distutils import build_ext
-except ImportError:
-    print("You don't seem to have Cython installed. Please get a")
-    print("copy from www.cython.org and install it")
-    sys.exit(1)
+here = os.path.abspath(os.path.dirname(__file__))
 
-# scan the 'dvedit' directory for extension files, converting
-# them to extension names in dotted notation
-def scandir(d, files=[]):
-    for f in os.listdir(d):
-        p = os.path.join(d, f)
-        if os.path.isfile(p) and p.endswith(".pyx"):
-            files.append(p.replace(os.path.sep, ".")[:-4])
-        elif os.path.isdir(p):
-            scandir(p, files)
-    return files
+extensions = [
+    Extension(
+        "palindromes.dicttree",
+        ["palindromes/dicttree.pyx"],
+        include_dirs=[os.path.join(here, "palindromes")],
+    ),
+    Extension(
+        "palindromes.cursor",
+        ["palindromes/cursor.pyx"],
+        include_dirs=[os.path.join(here, "palindromes")],
+    ),
+]
 
-
-# generate an Extension object from its dotted name
-def makeExtension(ext_name):
-    ext_basepath = ext_name.replace(".", os.path.sep)
-    #this is a hack to force cythoning of .pyx -> .c files
-    ext_pyx_filepath = '%s.pyx' % ext_basepath
-    ext_c_filepath   = '%s.c'   % ext_basepath
-    if not os.path.exists(ext_c_filepath) or (os.path.getmtime(ext_pyx_filepath) > os.path.getmtime(ext_c_filepath)):
-        # For some reason, setup in setuptools does not compile
-        # Cython files (!)  Do that manually...
-        print("cythoning %s to %s" % (ext_pyx_filepath, ext_c_filepath))
-        os.system("cython %s" % ext_pyx_filepath)
-    return Extension(
-        ext_name,
-        [ext_pyx_filepath],
-        include_dirs = ["."],   # adding the '.' to include_dirs is CRUCIAL!!
-        extra_compile_args = ["-O3", "-Wall"],
-        extra_link_args = ['-g'],
-        #libraries = [],
-        )
-
-# get the list of extensions
-EXT_NAMES = scandir("palindromes")
-
-print("found Cython extensions:", EXT_NAMES)
-
-# and build up the set of Extension objects
-EXTENSIONS = [makeExtension(name) for name in EXT_NAMES]
-
-# finally, we can pass all this to distutils
 setup(
-      name         = "palindromes",
-      version      = "0.0.1a",
-      author       = "Craig Versek",
-      author_email = "cversek@physics.umass.edu",
-      packages     = ['palindromes'],
-      ext_modules  = EXTENSIONS,
-      cmdclass     = {'build_ext': build_ext},
-      #data_files
+    name="palindromes",
+    version="0.0.2a0",
+    author="Craig Wm. Versek",
+    author_email="cversek@gmail.com",
+    packages=["palindromes"],
+    ext_modules=cythonize(
+        extensions,
+        compiler_directives={"language_level": "3"},
+    ),
+    extras_require={
+        "test": ["pytest>=7.4.0"],
+    },
 )
